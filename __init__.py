@@ -51,7 +51,7 @@ def create_user(**data):
 
 # [--- Flask Factories  ---]
 
-def getapp():
+def create_app():
     app = Flask(__name__)
     return app
 
@@ -151,7 +151,7 @@ def with_app(f):
     """Calls function passing app as first argument"""
     @wraps(f)
     def decorator(*args, **kwargs):
-        app = getapp()
+        app = create_app()
         configure_extensions(app)
         configure_views(app)
         return f(app=app, *args, **kwargs)
