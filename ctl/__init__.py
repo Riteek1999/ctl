@@ -11,7 +11,7 @@ import os
 from functools import wraps
 import ast
 import pandas as pd
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request, session, url_for, redirect
 from flask_simplelogin import SimpleLogin, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 import util
@@ -68,10 +68,15 @@ def configure_extensions(app):
         with open('users.json', 'a') as json_file:
             json.dump({'username': '', 'password': ''}, json_file)
 
+# @app.route('/')
+def index():
+    return redirect(url_for('home'))
+
 def configure_views(app):
-    @app.route('/')
-    def index():
-        return render_template('index.html')
+
+    @app.route('/home')
+    def home():
+        return render_template('home.html')
 
     @app.route('/add_event', methods=['GET', 'POST'])
     @login_required()
@@ -111,13 +116,10 @@ def configure_views(app):
         return jsonify(data='You are logged in with basic auth')
 
     @login_required(basic=True)
-
-
     @app.route('/history')
     @login_required(username=['admin'])
     def history():
         # user = load_users()
-
         if os.path.exists('records.sqlite'):
             df = sql_ex.extract()
             return render_template('history.html', tables=[df.to_html(border="0",justify="match-parent")], titles=[df.columns.values])
@@ -158,8 +160,8 @@ def with_app(f):
 
 @click.group()
 def main():
-    """Flask Simple Login Example App"""
-
+    """Flask Calendar Task Scheduling App"""
+    index()
 
 @main.command()
 @click.option('--username', required=True, prompt=True)
@@ -179,7 +181,7 @@ def adduser(app, username, password):
 @click.option('--host', default=None)
 @click.option('--port', default=None)
 @with_app
-def runserver(app=None, reloader=None, debug=None, host=None, port=None):
+def main(app=None, reloader=None, debug=None, host=None, port=None):
     """Run the Flask development server i.e. app.run()"""
     debug = debug or app.config.get('DEBUG', False)
     reloader = reloader or app.config.get('RELOADER', True)
@@ -196,5 +198,5 @@ def runserver(app=None, reloader=None, debug=None, host=None, port=None):
 # [--- Entry point ---]
 
 if __name__ == "__main__":
-    """python manage.py to see help"""
+    """python app.py to see help"""
     main()
